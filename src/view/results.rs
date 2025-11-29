@@ -2,29 +2,20 @@ use serde_json::Value;
 use tabled::builder::Builder;
 use tabled::settings::style::Style;
 
-pub fn print_results(results: &Value) {
+pub fn get_results(results: &Value) -> Option<String> {
     let results_array = match results {
-        Value::Array(arr) => arr,
+        Value::Array(arr) => Some(arr),
         Value::Object(obj) => match obj.get("results") {
-            Some(Value::Array(arr)) => arr,
-            _ => {
-                if let Ok(json) = serde_json::to_string_pretty(results) {
-                    println!("{}", json);
-                }
-                return;
-            }
+            Some(Value::Array(arr)) => Some(arr),
+            _ => None,
         },
-        _ => {
-            if let Ok(json) = serde_json::to_string_pretty(results) {
-                println!("{}", json);
-            }
-            return;
-        }
+        _ => None,
     };
 
+    let results_array = results_array?;
+
     if results_array.is_empty() {
-        println!("No results");
-        return;
+        return None;
     }
 
     let mut builder = Builder::default();
@@ -56,5 +47,5 @@ pub fn print_results(results: &Value) {
 
     table.with(Style::psql());
 
-    println!("{}", table);
+    Some(table.to_string())
 }
