@@ -3,7 +3,7 @@ mod logging;
 mod repository;
 mod view;
 
-use crate::{repository::QueryExecutor, view::print_results};
+use crate::{repository::QueryExecutor, view::get_results};
 use anyhow::Context;
 use aws_config::BehaviorVersion;
 use aws_sdk_neptunedata::config::ProvideCredentials;
@@ -84,7 +84,11 @@ async fn main() -> anyhow::Result<()> {
                         .await
                         .context("couldn't execute query")?;
 
-                    print_results(&value);
+                    if let Some(results_str) = get_results(&value) {
+                        println!("{}", results_str);
+                    } else {
+                        println!("no results");
+                    }
                 }
                 None => {
                     let history_file_path = xdg.data_dir().join("gcue").join("history.txt");

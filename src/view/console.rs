@@ -1,4 +1,4 @@
-use super::print_results;
+use super::get_results;
 use crate::repository::QueryExecutor;
 use anyhow::Context;
 use colored::Colorize;
@@ -55,8 +55,11 @@ impl<D: QueryExecutor> Console<D> {
                         .await
                         .context("couldn't execute query")?;
 
-                    print_results(&value);
-                    println!();
+                    if let Some(results) = get_results(&value) {
+                        println!("\n{}\n", results);
+                    } else {
+                        println!("\n {}\n", "no results".blue());
+                    }
                 }
             }
         }
