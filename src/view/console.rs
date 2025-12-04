@@ -33,20 +33,27 @@ impl<D: QueryExecutor> Console<D> {
         print_banner(std::io::stdout(), true);
         print_help(std::io::stdout(), &self.db_client.db_uri(), true);
 
-        let mut rl = rustyline::DefaultEditor::new()?;
-        let _ = rl.load_history(&self.history_file_path);
+        let mut editor = rustyline::DefaultEditor::new()?;
+        let _ = editor.load_history(&self.history_file_path);
 
         loop {
-            let query = rl.readline(">> ").context("couldn't read input")?;
+            let query = editor.readline(">> ").context("couldn't read input")?;
 
             match query.trim() {
                 "" => {}
                 "bye" | "exit" | "quit" | ":q" => {
                     break;
                 }
-                "help" | ":h" => print_help(std::io::stdout(), &self.db_client.db_uri(), true),
+                "clear" => {
+                    if editor.clear_screen().is_err() {
+                        println!("{}", "Error: couldn't clear screen".red());
+                    }
+                }
+                "help" | ":h" => {
+                    print_help(std::io::stdout(), &self.db_client.db_uri(), true);
+                }
                 q => {
-                    if let Err(e) = rl.add_history_entry(q) {
+                    if let Err(e) = editor.add_history_entry(q) {
                         println!("Error: {e}");
                     }
                     let value = self
@@ -64,7 +71,7 @@ impl<D: QueryExecutor> Console<D> {
             }
         }
 
-        let _ = rl.save_history(&self.history_file_path);
+        let _ = editor.save_history(&self.history_file_path);
 
         Ok(())
     }
