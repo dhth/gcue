@@ -48,11 +48,9 @@ impl<D: QueryExecutor> Console<D> {
                     if editor.clear_screen().is_err() {
                         println!("{}", "Error: couldn't clear screen".red());
                     }
-                    continue;
                 }
                 "help" | ":h" => {
                     print_help(std::io::stdout(), &self.db_client.db_uri(), true);
-                    continue;
                 }
                 q => {
                     if let Err(e) = editor.add_history_entry(q) {
