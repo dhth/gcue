@@ -2,10 +2,11 @@ use crate::domain::OutputFormat;
 use anyhow::Context;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use tokio::io::AsyncWriteExt;
 
-pub async fn write_results<P>(
+pub fn write_results<P>(
     results: &[Value],
     results_directory: P,
     format: &OutputFormat,
@@ -14,14 +15,12 @@ pub async fn write_results<P>(
 where
     P: AsRef<Path>,
 {
-    tokio::fs::create_dir_all(&results_directory)
-        .await
-        .with_context(|| {
-            format!(
-                "failed to create results directory: {}",
-                results_directory.as_ref().to_string_lossy()
-            )
-        })?;
+    std::fs::create_dir_all(&results_directory).with_context(|| {
+        format!(
+            "failed to create results directory: {}",
+            results_directory.as_ref().to_string_lossy()
+        )
+    })?;
 
     let file_name = reference_time.format("%b-%d-%H-%M-%S");
     let output_file_path = match format {
@@ -31,33 +30,30 @@ where
             .join(format!("{}.json", file_name)),
     };
 
-    let file = tokio::fs::File::create(&output_file_path)
-        .await
-        .with_context(|| {
-            format!(
-                "couldn't open output file: {}",
-                output_file_path.to_string_lossy()
-            )
-        })?;
+    let file = File::create(&output_file_path).with_context(|| {
+        format!(
+            "couldn't open output file: {}",
+            output_file_path.to_string_lossy()
+        )
+    })?;
 
     match format {
         OutputFormat::Csv => todo!(),
-        OutputFormat::Json => write_json(results, file).await?,
+        OutputFormat::Json => write_json(results, file)?,
     }
 
     Ok(output_file_path)
 }
 
-async fn write_json<W>(results: &[Value], mut writer: W) -> anyhow::Result<()>
+fn write_json<W>(results: &[Value], mut writer: W) -> anyhow::Result<()>
 where
-    W: tokio::io::AsyncWrite + Unpin,
+    W: Write,
 {
     let json_string =
         serde_json::to_string_pretty(results).context("couldn't serialize results to JSON")?;
     writer
         .write_all(json_string.as_bytes())
-        .await
-        .context("couldn't write byes to file")?;
+        .context("couldn't write bytes to file")?;
 
     Ok(())
 }

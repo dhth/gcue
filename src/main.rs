@@ -98,7 +98,6 @@ async fn main() -> anyhow::Result<()> {
                         &results_format,
                         Utc::now(),
                     )
-                    .await
                     .context("couldn't write results")?;
                     println!("Wrote results to {}", results_file_path.to_string_lossy());
                 } else {

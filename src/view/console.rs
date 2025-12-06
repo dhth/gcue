@@ -154,7 +154,6 @@ impl<D: QueryExecutor> Console<D> {
                                     &self.config.results_format,
                                     Utc::now(),
                                 )
-                                .await
                                 .context("couldn't write results")
                                 {
                                     Ok(p) => {
