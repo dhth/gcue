@@ -1,4 +1,4 @@
-use crate::domain::OutputFormat;
+use crate::domain::{NonEmptyResults, OutputFormat};
 use anyhow::Context;
 use chrono::{DateTime, Utc};
 use serde_json::Value;
@@ -7,7 +7,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 pub fn write_results<P>(
-    results: &[Value],
+    results: &NonEmptyResults,
     results_directory: P,
     format: &OutputFormat,
     reference_time: DateTime<Utc>,
@@ -22,7 +22,7 @@ where
         )
     })?;
 
-    let file_name = reference_time.format("%m-%d-%H-%M-%S");
+    let file_name = reference_time.format("%Y-%m-%d-%H-%M-%S");
     let output_file_path =
         results_directory
             .as_ref()
@@ -43,35 +43,29 @@ where
     Ok(output_file_path)
 }
 
-fn write_csv<W>(results: &[Value], writer: W) -> anyhow::Result<()>
+fn write_csv<W>(results: &NonEmptyResults, writer: W) -> anyhow::Result<()>
 where
     W: Write,
 {
-    if results.is_empty() {
-        return Ok(());
-    }
-
     let mut csv_writer = csv::Writer::from_writer(writer);
 
-    let Some(first) = results.first().and_then(|v| v.as_object()) else {
+    let Some(first) = results.first().as_object() else {
+        // this is alright as the result from the db is expected to be an array of objects, each
+        // having the same keys
         anyhow::bail!("expected results to be an array of objects");
     };
 
     let headers: Vec<&str> = first.keys().map(|s| s.as_str()).collect();
     csv_writer.write_record(&headers)?;
 
-    for result in results {
+    for result in results.list() {
         let Some(obj) = result.as_object() else {
             anyhow::bail!("expected each result to be an object");
         };
 
         let row: Vec<String> = headers
             .iter()
-            .map(|&header| {
-                obj.get(header)
-                    .map(value_to_csv_field)
-                    .unwrap_or_default()
-            })
+            .map(|&header| obj.get(header).map(value_to_csv_field).unwrap_or_default())
             .collect();
 
         csv_writer.write_record(&row)?;
@@ -91,12 +85,12 @@ fn value_to_csv_field(value: &Value) -> String {
     }
 }
 
-fn write_json<W>(results: &[Value], mut writer: W) -> anyhow::Result<()>
+fn write_json<W>(results: &NonEmptyResults, mut writer: W) -> anyhow::Result<()>
 where
     W: Write,
 {
-    let json_string =
-        serde_json::to_string_pretty(results).context("couldn't serialize results to JSON")?;
+    let json_string = serde_json::to_string_pretty(results.list())
+        .context("couldn't serialize results to JSON")?;
     writer
         .write_all(json_string.as_bytes())
         .context("couldn't write bytes to file")?;

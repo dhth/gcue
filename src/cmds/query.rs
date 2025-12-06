@@ -1,11 +1,10 @@
-use crate::domain::BenchmarkNumRuns;
+use crate::domain::{BenchmarkNumRuns, QueryResults};
 use crate::repository::{DbClient, QueryExecutor};
 use anyhow::Context;
 use colored::Colorize;
-use serde_json::Value;
 use std::time::Instant;
 
-pub async fn execute_query(db_client: &DbClient, query: &str) -> anyhow::Result<Vec<Value>> {
+pub async fn execute_query(db_client: &DbClient, query: &str) -> anyhow::Result<QueryResults> {
     let results = db_client.execute_query(query).await?;
 
     Ok(results)

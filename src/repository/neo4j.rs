@@ -2,6 +2,8 @@ use anyhow::Context;
 use neo4rs::{ConfigBuilder, Graph, query as neo4j_query};
 use serde_json::Value;
 
+use crate::domain::QueryResults;
+
 pub struct Neo4jClient {
     inner: Graph,
     db_uri: String,
@@ -35,7 +37,7 @@ impl Neo4jClient {
         self.db_uri.clone()
     }
 
-    pub(super) async fn execute_query(&self, query: &str) -> anyhow::Result<Vec<Value>> {
+    pub(super) async fn execute_query(&self, query: &str) -> anyhow::Result<QueryResults> {
         let mut result = self
             .inner
             .execute(neo4j_query(query))
@@ -53,6 +55,6 @@ impl Neo4jClient {
             results.push(row_value);
         }
 
-        Ok(results)
+        Ok(results.into())
     }
 }

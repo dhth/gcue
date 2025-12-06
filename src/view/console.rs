@@ -1,5 +1,5 @@
 use super::get_results;
-use crate::domain::OutputFormat;
+use crate::domain::{OutputFormat, QueryResults};
 use crate::repository::QueryExecutor;
 use anyhow::Context;
 use chrono::Utc;
@@ -143,10 +143,10 @@ impl<D: QueryExecutor> Console<D> {
                     }
 
                     match self.db_client.execute_query(q).await {
-                        Ok(results) if results.is_empty() => {
+                        Ok(QueryResults::Empty) => {
                             println!("\nNo results\n");
                         }
-                        Ok(results) => {
+                        Ok(QueryResults::NonEmpty(results)) => {
                             if self.config.write_results {
                                 match crate::service::write_results(
                                     &results,

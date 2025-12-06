@@ -2,14 +2,16 @@ use serde_json::Value;
 use tabled::builder::Builder;
 use tabled::settings::style::Style;
 
-pub fn get_results(results: &[Value]) -> String {
+use crate::domain::NonEmptyResults;
+
+pub fn get_results(results: &NonEmptyResults) -> String {
     let mut builder = Builder::default();
 
-    if let Some(Value::Object(first)) = results.first() {
+    if let Value::Object(first) = results.first() {
         let headers: Vec<String> = first.keys().cloned().collect();
         builder.push_record(&headers);
 
-        for result in results {
+        for result in results.list() {
             if let Value::Object(row) = result {
                 let cells: Vec<String> = headers
                     .iter()
@@ -43,14 +45,15 @@ mod tests {
     #[test]
     fn get_results_returns_correct_table_for_array_of_objects() {
         // GIVEN
-        let value = [
+        let results = vec![
             serde_json::json!({"language": "Rust", "creator": "Graydon Hoare", "year": 2010}),
             serde_json::json!({"language": "Python", "creator": "Guido van Rossum", "year": 1991}),
             serde_json::json!({"language": "Go", "creator": "Rob Pike", "year": 2009}),
         ];
+        let results = NonEmptyResults::try_from(results).expect("results should've been created");
 
         // WHEN
-        let result = get_results(&value);
+        let result = get_results(&results);
 
         // THEN
         assert_snapshot!(result, @r"
@@ -65,13 +68,14 @@ mod tests {
     #[test]
     fn get_results_formats_null_values_correctly() {
         // GIVEN
-        let value = [
+        let results = vec![
             serde_json::json!({"language": "Rust", "creator": null}),
             serde_json::json!({"language": "Python", "creator": "Guido van Rossum"}),
         ];
+        let results = NonEmptyResults::try_from(results).expect("results should've been created");
 
         // WHEN
-        let result = get_results(&value);
+        let result = get_results(&results);
 
         // THEN
         assert_snapshot!(result, @r"
@@ -85,13 +89,14 @@ mod tests {
     #[test]
     fn get_results_converts_non_string_values_to_string() {
         // GIVEN
-        let value = [
+        let results = vec![
             serde_json::json!({"version": "1.0", "stable": true, "downloads": 1000}),
             serde_json::json!({"version": "2.0", "stable": false, "downloads": 5000}),
         ];
+        let results = NonEmptyResults::try_from(results).expect("results should've been created");
 
         // WHEN
-        let result = get_results(&value);
+        let result = get_results(&results);
 
         // THEN
         assert_snapshot!(result, @r"
@@ -105,14 +110,15 @@ mod tests {
     #[test]
     fn get_results_skips_non_object_array_elements() {
         // GIVEN
-        let value = [
+        let results = vec![
             serde_json::json!({"language": "Rust", "creator": "Graydon Hoare"}),
             serde_json::json!("invalid"),
             serde_json::json!({"language": "Python", "creator": "Guido van Rossum"}),
         ];
+        let results = NonEmptyResults::try_from(results).expect("results should've been created");
 
         // WHEN
-        let result = get_results(&value);
+        let result = get_results(&results);
 
         // THEN
         assert_snapshot!(result, @r"
@@ -126,14 +132,15 @@ mod tests {
     #[test]
     fn get_results_shows_empty_string_for_missing_columns() {
         // GIVEN
-        let value = [
+        let results = vec![
             serde_json::json!({"language": "Rust", "creator": "Graydon Hoare", "year": 2010}),
             serde_json::json!({"language": "Python", "creator": "Guido van Rossum"}),
             serde_json::json!({"language": "Go", "year": 2009}),
         ];
+        let results = NonEmptyResults::try_from(results).expect("results should've been created");
 
         // WHEN
-        let result = get_results(&value);
+        let result = get_results(&results);
 
         // THEN
         assert_snapshot!(result, @r"

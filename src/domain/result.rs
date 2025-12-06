@@ -1,28 +1,41 @@
 use serde_json::Value;
 
-#[allow(unused)]
 pub struct NonEmptyResults(Vec<Value>);
 
-#[allow(unused)]
 impl NonEmptyResults {
-    pub fn results(&self) -> &[Value] {
+    pub fn list(&self) -> &[Value] {
         &self.0
+    }
+
+    pub fn first(&self) -> &Value {
+        &self.0[0]
     }
 }
 
-#[allow(unused)]
+#[cfg(test)]
+impl TryFrom<Vec<Value>> for NonEmptyResults {
+    type Error = &'static str;
+
+    fn try_from(value: Vec<Value>) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            return Err("list is empty");
+        }
+
+        Ok(Self(value))
+    }
+}
+
 pub enum QueryResults {
     Empty,
     NonEmpty(NonEmptyResults),
 }
 
-#[allow(unused)]
-impl QueryResults {
-    pub fn new(results: Vec<Value>) -> Self {
-        if results.is_empty() {
+impl From<Vec<Value>> for QueryResults {
+    fn from(value: Vec<Value>) -> Self {
+        if value.is_empty() {
             return QueryResults::Empty;
         }
 
-        QueryResults::NonEmpty(NonEmptyResults(results))
+        QueryResults::NonEmpty(NonEmptyResults(value))
     }
 }

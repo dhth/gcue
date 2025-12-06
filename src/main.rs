@@ -13,6 +13,7 @@ use aws_sdk_neptunedata::config::ProvideCredentials;
 use chrono::Utc;
 use clap::Parser;
 use cli::Args;
+use domain::QueryResults;
 use etcetera::BaseStrategy;
 use repository::{DbClient, Neo4jClient, Neo4jConfig, NeptuneClient};
 use std::io::Read;
@@ -86,10 +87,13 @@ async fn main() -> anyhow::Result<()> {
                     .await?;
             } else {
                 let results = cmds::execute_query(&db_client, &query).await?;
-                if results.is_empty() {
-                    println!("No results");
-                    return Ok(());
-                }
+                let results = match results {
+                    QueryResults::Empty => {
+                        println!("No results");
+                        return Ok(());
+                    }
+                    QueryResults::NonEmpty(res) => res,
+                };
 
                 if write_results {
                     let results_file_path = crate::service::write_results(

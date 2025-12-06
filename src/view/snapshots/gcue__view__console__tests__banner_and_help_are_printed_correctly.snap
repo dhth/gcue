@@ -23,7 +23,7 @@ expression: result
    clear                          clear screen
    format                         csv/json
    help / :h                      show help
-   output                         <PATH>
+   output                         <PATH> / reset
    quit / exit / bye / :q         quit
    write                          on/off
 
