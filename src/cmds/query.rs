@@ -1,23 +1,17 @@
 use crate::domain::BenchmarkNumRuns;
 use crate::repository::{DbClient, QueryExecutor};
-use crate::view::get_results;
 use anyhow::Context;
 use colored::Colorize;
+use serde_json::Value;
 use std::time::Instant;
 
-pub async fn execute_query(db_client: &DbClient, query: &str) -> anyhow::Result<()> {
+pub async fn execute_query(db_client: &DbClient, query: &str) -> anyhow::Result<Value> {
     let value = db_client
         .execute_query(query)
         .await
         .context("couldn't execute query")?;
 
-    if let Some(results_str) = get_results(&value) {
-        println!("{}", results_str);
-    } else {
-        println!("no results");
-    }
-
-    Ok(())
+    Ok(value)
 }
 
 pub async fn benchmark_query(

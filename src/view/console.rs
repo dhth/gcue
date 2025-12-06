@@ -2,6 +2,7 @@ use super::get_results;
 use crate::domain::OutputFormat;
 use crate::repository::QueryExecutor;
 use anyhow::Context;
+use chrono::Utc;
 use colored::Colorize;
 use std::io::Write;
 use std::path::PathBuf;
@@ -26,9 +27,9 @@ impl FromStr for OutputFormat {
 }
 
 struct ConsoleConfig {
-    format: OutputFormat,
-    output_path: PathBuf,
-    write: bool,
+    write_results: bool,
+    results_directory: PathBuf,
+    results_format: OutputFormat,
 }
 
 pub struct Console<D: QueryExecutor> {
@@ -52,9 +53,9 @@ impl<D: QueryExecutor> Console<D> {
             db_client,
             history_file_path,
             config: ConsoleConfig {
-                format: OutputFormat::Csv,
-                output_path,
-                write: false,
+                write_results: false,
+                results_directory: output_path,
+                results_format: OutputFormat::Csv,
             },
         }
     }
@@ -95,7 +96,7 @@ impl<D: QueryExecutor> Console<D> {
                 cmd if cmd.starts_with("format") => match cmd.split_once(" ") {
                     Some((_, arg)) => match OutputFormat::from_str(arg) {
                         Ok(f) => {
-                            self.config.format = f;
+                            self.config.results_format = f;
                             print_info(format!("output format set to: {}", arg));
                         }
                         Err(e) => {
@@ -108,7 +109,7 @@ impl<D: QueryExecutor> Console<D> {
                 },
                 cmd if cmd.starts_with("output") => match cmd.split_once(" ") {
                     Some((_, "reset")) => {
-                        self.config.output_path = PathBuf::new().join(DEFAULT_OUTPUT_PATH);
+                        self.config.results_directory = PathBuf::new().join(DEFAULT_OUTPUT_PATH);
                         print_info(format!(
                             "output path changed to gcue's default: {}",
                             DEFAULT_OUTPUT_PATH
@@ -116,7 +117,7 @@ impl<D: QueryExecutor> Console<D> {
                     }
                     Some((_, arg)) => match PathBuf::from_str(arg) {
                         Ok(p) => {
-                            self.config.output_path = p;
+                            self.config.results_directory = p;
                             print_info(format!("output path changed to: {}", arg));
                         }
                         Err(e) => {
@@ -127,11 +128,11 @@ impl<D: QueryExecutor> Console<D> {
                 },
                 cmd if cmd.starts_with("write") => match cmd.split_once(" ") {
                     Some((_, "on")) => {
-                        self.config.write = true;
+                        self.config.write_results = true;
                         print_info("writing output turned ON");
                     }
                     Some((_, "off")) => {
-                        self.config.write = false;
+                        self.config.write_results = false;
                         print_info("writing output turned OFF");
                     }
                     _ => print_error("Usage: write on/off"),
@@ -140,14 +141,31 @@ impl<D: QueryExecutor> Console<D> {
                     if let Err(e) = editor.add_history_entry(q) {
                         println!("Error: {e}");
                     }
-                    let value = self
+                    let results = self
                         .db_client
                         .execute_query(q)
                         .await
                         .context("couldn't execute query")?;
 
-                    if let Some(results) = get_results(&value) {
-                        println!("\n{}\n", results);
+                    if self.config.write_results {
+                        match crate::service::write_results(
+                            results,
+                            &self.config.results_directory,
+                            &self.config.results_format,
+                            Utc::now(),
+                        )
+                        .await
+                        .context("couldn't write results")
+                        {
+                            Ok(p) => {
+                                print_info(format!("wrote results to {}", p.to_string_lossy()));
+                            }
+                            Err(e) => {
+                                print_error(format!("Error: couldn't write results: {}", e));
+                            }
+                        }
+                    } else if let Some(results_str) = get_results(&results) {
+                        println!("\n{}\n", results_str);
                     } else {
                         println!("\n {}\n", "no results".blue());
                     }
@@ -183,9 +201,9 @@ fn print_help(mut writer: impl Write, db_uri: &str, config: &ConsoleConfig, colo
    output format                  {}
    output path                    {}
    write output                   {}",
-        config.format,
-        config.output_path.to_string_lossy(),
-        if config.write { "ON" } else { "OFF" }
+        config.results_format,
+        config.results_directory.to_string_lossy(),
+        if config.write_results { "ON" } else { "OFF" }
     );
 
     let help = if color {
@@ -228,9 +246,9 @@ mod tests {
         // GIVEN
         let mut buf = Vec::new();
         let console_config = ConsoleConfig {
-            format: OutputFormat::Csv,
-            output_path: PathBuf::new().join(DEFAULT_OUTPUT_PATH),
-            write: false,
+            results_format: OutputFormat::Csv,
+            results_directory: PathBuf::new().join(DEFAULT_OUTPUT_PATH),
+            write_results: false,
         };
 
         // WHEN

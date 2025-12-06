@@ -1,6 +1,8 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 
-use crate::domain::BenchmarkNumRuns;
+use crate::domain::{BenchmarkNumRuns, OutputFormat};
 
 /// gcue lets you query Neo4j/AWS Neptune databases via an interactive console
 #[derive(Parser, Debug)]
@@ -45,6 +47,25 @@ pub enum GraphQCommand {
         /// Print query
         #[arg(short = 'p', long = "print-query")]
         print_query: bool,
+        /// Write results to file-system
+        #[arg(short = 'w', long = "write-results")]
+        write_results: bool,
+        /// Directory to write results in
+        #[arg(
+            short = 'd',
+            long = "results-dir",
+            value_name = "DIRECTORY",
+            default_value = ".gcue"
+        )]
+        results_directory: PathBuf,
+        /// Format to write results in
+        #[arg(
+            short = 'f',
+            long = "results-format",
+            value_name = "FORMAT",
+            default_value = "csv"
+        )]
+        results_format: OutputFormat,
     },
 }
 
@@ -61,6 +82,9 @@ command:                    console
                 bench_num_runs,
                 bench_num_warmup_runs,
                 print_query,
+                write_results,
+                results_directory,
+                results_format,
             } => {
                 let benchmark_info = match benchmark {
                     true => Some(format!(
@@ -89,14 +113,32 @@ query:
                     )
                 };
 
+                let output_info = if *write_results {
+                    format!(
+                        "
+write results:              true
+results directory:          {}
+results format:             {}
+",
+                        results_directory.to_string_lossy(),
+                        results_format
+                    )
+                } else {
+                    r#"
+write results:              false
+"#
+                    .to_string()
+                };
+
                 format!(
                     r#"
 command:                    query
 benchmark:                  {}{}
-print query:                {}{}"#,
+print query:                {}{}{}"#,
                     benchmark,
                     benchmark_info.unwrap_or_default(),
                     print_query,
+                    output_info,
                     query_info,
                 )
             }
