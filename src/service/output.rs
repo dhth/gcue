@@ -17,7 +17,7 @@ where
 {
     std::fs::create_dir_all(&results_directory).with_context(|| {
         format!(
-            "failed to create results directory: {}",
+            "couldn't create results directory: {}",
             results_directory.as_ref().to_string_lossy()
         )
     })?;

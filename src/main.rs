@@ -42,10 +42,7 @@ async fn main() -> anyhow::Result<()> {
 
             if let Some(parent) = history_file_path.parent() {
                 tokio::fs::create_dir_all(parent).await.with_context(|| {
-                    format!(
-                        "failed to create directory for gcue's history: {:?}",
-                        parent,
-                    )
+                    format!("couldn't create directory for gcue's history: {:?}", parent,)
                 })?;
             }
 
@@ -77,7 +74,7 @@ async fn main() -> anyhow::Result<()> {
                 let mut buffer = String::new();
                 std::io::stdin()
                     .read_to_string(&mut buffer)
-                    .context("failed to read query from stdin")?;
+                    .context("couldn't read query from stdin")?;
                 buffer.trim().to_string()
             } else {
                 query
@@ -135,7 +132,7 @@ async fn get_db_client() -> anyhow::Result<DbClient> {
                 provider
                     .provide_credentials()
                     .await
-                    .context("failed to fetch AWS credentials")?;
+                    .context("couldn't fetch AWS credentials")?;
             }
 
             let neptune_client = NeptuneClient::new(&sdk_config, &db_uri);
