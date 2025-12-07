@@ -185,7 +185,7 @@ fn fails_if_both_benchmark_and_write_flags_are_provided() {
     ----- stdout -----
 
     ----- stderr -----
-    Error: cannot benchmark and write results as the same time
+    Error: cannot benchmark and write results at the same time
     ");
 }
 

@@ -65,7 +65,7 @@ async fn main() -> anyhow::Result<()> {
             results_format,
         } => {
             if benchmark && write_results {
-                anyhow::bail!("cannot benchmark and write results as the same time");
+                anyhow::bail!("cannot benchmark and write results at the same time");
             }
 
             let db_client = get_db_client().await?;

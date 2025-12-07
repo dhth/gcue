@@ -23,15 +23,15 @@ where
     })?;
 
     let file_name = reference_time.format("%Y-%m-%d-%H-%M-%S");
-    let output_file_path =
+    let results_file_path =
         results_directory
             .as_ref()
             .join(format!("{}.{}", file_name, format.extension()));
 
-    let file = File::create(&output_file_path).with_context(|| {
+    let file = File::create(&results_file_path).with_context(|| {
         format!(
-            "couldn't open output file: {}",
-            output_file_path.to_string_lossy()
+            "couldn't create results file: {}",
+            results_file_path.to_string_lossy()
         )
     })?;
 
@@ -40,7 +40,7 @@ where
         OutputFormat::Json => write_json(results, file)?,
     }
 
-    Ok(output_file_path)
+    Ok(results_file_path)
 }
 
 fn write_csv<W>(results: &NonEmptyResults, writer: W) -> anyhow::Result<()>
@@ -193,7 +193,7 @@ mod tests {
               "compiled": false,
               "features": {
                 "garbage_collection": true,
-                "static_typing": null,
+                "static_typing": null
               }
             }),
             serde_json::json!(
