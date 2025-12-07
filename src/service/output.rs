@@ -97,3 +97,115 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use insta::assert_snapshot;
+
+    #[test]
+    fn write_csv_writes_correct_headers_and_rows() -> anyhow::Result<()> {
+        // GIVEN
+        let results = results_sample_one();
+        let mut buffer = Vec::new();
+
+        // WHEN
+        write_csv(&results, &mut buffer)?;
+
+        // THEN
+        let result = String::from_utf8(buffer)?;
+        assert_snapshot!(result);
+
+        Ok(())
+    }
+
+    #[test]
+    fn write_csv_handles_non_strings_and_numbers() -> anyhow::Result<()> {
+        // GIVEN
+        let results = results_sample_two();
+        let mut buffer = Vec::new();
+
+        // WHEN
+        write_csv(&results, &mut buffer)?;
+
+        // THEN
+        let result = String::from_utf8(buffer)?;
+        assert_snapshot!(result);
+
+        Ok(())
+    }
+
+    #[test]
+    fn write_json_works_as_expected() -> anyhow::Result<()> {
+        // GIVEN
+        let results = results_sample_one();
+        let mut buffer = Vec::new();
+
+        // WHEN
+        write_json(&results, &mut buffer)?;
+
+        // THEN
+        let result = String::from_utf8(buffer)?;
+        assert_snapshot!(result);
+
+        Ok(())
+    }
+
+    fn results_sample_one() -> NonEmptyResults {
+        let results = vec![
+            serde_json::json!({"language": "Rust", "creator": "Graydon Hoare", "year": 2010}),
+            serde_json::json!({"language": "Python", "creator": "Guido van Rossum", "year": 1991}),
+            serde_json::json!({"language": "Go", "creator": "Rob Pike", "year": 2009}),
+        ];
+
+        NonEmptyResults::try_from(results).expect("results should've been created")
+    }
+
+    fn results_sample_two() -> NonEmptyResults {
+        let results = vec![
+            serde_json::json!(
+            {
+              "language": "Rust",
+              "creators": ["Graydon Hoare"],
+              "year": 2010,
+              "compiled": true,
+              "features": {
+                "garbage_collection": false,
+                "static_typing": true
+              }
+            }),
+            serde_json::json!(
+            {
+              "language": "Go",
+              "creators": ["Robert Griesemer", "Rob Pike", "Ken Thompson", null],
+              "year": 2009,
+              "compiled": true,
+              "features": {
+                "garbage_collection": true,
+                "static_typing": true
+              }
+            }),
+            serde_json::json!(
+            {
+              "language": "Python",
+              "creator": null,
+              "year": 1991,
+              "compiled": false,
+              "features": {
+                "garbage_collection": true,
+                "static_typing": null,
+              }
+            }),
+            serde_json::json!(
+            {
+              "language": "Gleam",
+              "creators": ["Louis Pilfold"],
+              "year": 2016,
+              "compiled": true,
+              "features": null
+            }),
+        ];
+
+        NonEmptyResults::try_from(results).expect("results should've been created")
+    }
+}
