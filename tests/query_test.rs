@@ -23,20 +23,20 @@ fn shows_help() {
     ----- stdout -----
     Execute a one-off query
 
-    Usage: gcue query [OPTIONS] <QUERY>
+    Usage: grf query [OPTIONS] <QUERY>
 
     Arguments:
       <QUERY>  Cypher query to execute
 
     Options:
-      -p, --page-results                    Display results via a pager ("less", by default, can be overridden by $GCUE_PAGER)
+      -p, --page-results                    Display results via a pager ("less", by default, can be overridden by $GRF_PAGER)
       -b, --bench                           Whether to benchmark the query
           --debug                           Output debug information without doing anything
       -n, --bench-num-runs <NUMBER>         Number of benchmark runs [default: 5]
       -W, --bench-num-warmup-runs <NUMBER>  Number of benchmark warmup runs [default: 3]
       -P, --print-query                     Print query
       -w, --write-results                   Write results to filesystem
-      -d, --results-dir <DIRECTORY>         Directory to write results in [default: .gcue]
+      -d, --results-dir <DIRECTORY>         Directory to write results in [default: .grf]
       -f, --results-format <FORMAT>         Format to write results in [default: json] [possible values: csv, json]
       -h, --help                            Print help
 

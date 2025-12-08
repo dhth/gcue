@@ -19,12 +19,12 @@ fn shows_help() {
     success: true
     exit_code: 0
     ----- stdout -----
-    gcue lets you query Neo4j/AWS Neptune databases via an interactive console
+    grf lets you query Neo4j/AWS Neptune databases via an interactive console
 
-    Usage: gcue [OPTIONS] <COMMAND>
+    Usage: grf [OPTIONS] <COMMAND>
 
     Commands:
-      console  Open gcue's console
+      console  Open grf's console
       query    Execute a one-off query
       help     Print this message or the help of the given subcommand(s)
 

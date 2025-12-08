@@ -8,7 +8,7 @@ pub struct Fixture {
 #[cfg(test)]
 impl Fixture {
     pub fn new() -> Self {
-        let bin_path = get_cargo_bin("gcue");
+        let bin_path = get_cargo_bin("grf");
 
         Self { bin_path }
     }
