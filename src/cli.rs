@@ -3,7 +3,7 @@ use crate::domain::{BenchmarkNumRuns, OutputFormat};
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-/// gcue lets you query Neo4j/AWS Neptune databases via an interactive console
+/// grf lets you query Neo4j/AWS Neptune databases via an interactive console
 #[derive(Parser, Debug)]
 pub struct Args {
     #[command(subcommand)]
@@ -15,10 +15,10 @@ pub struct Args {
 
 #[derive(Subcommand, Debug)]
 pub enum GraphQCommand {
-    /// Open gcue's console
+    /// Open grf's console
     #[command()]
     Console {
-        /// Display results via a pager ("less", by default, can be overridden by $GCUE_PAGER)
+        /// Display results via a pager ("less", by default, can be overridden by $GRF_PAGER)
         #[arg(short = 'p', long = "page-results")]
         page_results: bool,
         /// Write results to filesystem
@@ -44,7 +44,7 @@ pub enum GraphQCommand {
     /// Execute a one-off query
     #[command()]
     Query {
-        /// Display results via a pager ("less", by default, can be overridden by $GCUE_PAGER)
+        /// Display results via a pager ("less", by default, can be overridden by $GRF_PAGER)
         #[arg(short = 'p', long = "page-results")]
         page_results: bool,
         /// Cypher query to execute

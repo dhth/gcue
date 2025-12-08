@@ -1,11 +1,11 @@
 [package]
-name = "gcue"
+name = "grf"
 version = "0.1.0-alpha.1"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/dhth/gcue"
+repository = "https://github.com/dhth/grf"
 description = "query Neo4j/AWS Neptune databases via an interactive console"
-homepage = "https://github.com/dhth/gcue"
+homepage = "https://github.com/dhth/grf"
 keywords = [
     "cli",
     "neo4j",

@@ -125,7 +125,7 @@ impl<D: QueryExecutor> Console<D> {
                     Some((_, "reset")) => {
                         self.config.results_directory = PathBuf::new().join(DEFAULT_RESULTS_DIR);
                         print_info(format!(
-                            "output path changed to gcue's default: {}",
+                            "output path changed to grf's default: {}",
                             DEFAULT_RESULTS_DIR
                         ));
                     }

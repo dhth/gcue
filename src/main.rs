@@ -40,11 +40,11 @@ async fn main() -> anyhow::Result<()> {
             results_format,
         } => {
             let db_client = get_db_client().await?;
-            let history_file_path = xdg.data_dir().join("gcue").join("history.txt");
+            let history_file_path = xdg.data_dir().join("grf").join("history.txt");
 
             if let Some(parent) = history_file_path.parent() {
                 tokio::fs::create_dir_all(parent).await.with_context(|| {
-                    format!("couldn't create directory for gcue's history: {:?}", parent,)
+                    format!("couldn't create directory for grf's history: {:?}", parent,)
                 })?;
             }
 
