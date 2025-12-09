@@ -327,7 +327,7 @@ fn get_query_from_user_input(contents: &str) -> anyhow::Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use insta::{assert_debug_snapshot, assert_snapshot};
+    use insta::assert_snapshot;
 
     const QUERY_FILE_PATH: &str = "src/view/testdata/query.cypher";
     const QUERY_WITH_WHITESPACE_FILE_PATH: &str = "src/view/testdata/query-with-whitespace.cypher";
@@ -445,7 +445,7 @@ mod tests {
         let result = get_query_from_user_input(input).expect_err("result should've been an error");
 
         // THEN
-        assert_debug_snapshot!(result, @r#""no file path provided after '@'""#);
+        assert_snapshot!(result, @"no file path provided after '@'");
     }
 
     #[test]
@@ -457,7 +457,7 @@ mod tests {
         let result = get_query_from_user_input(&input).expect_err("result should've been an error");
 
         // THEN
-        assert_debug_snapshot!(result, @r#""file 'src/view/testdata/empty.cypher' is empty""#);
+        assert_snapshot!(result, @"file 'src/view/testdata/empty.cypher' is empty");
     }
 
     #[test]
@@ -469,15 +469,6 @@ mod tests {
         let result = get_query_from_user_input(input).expect_err("result should've been an error");
 
         // THEN
-        assert_debug_snapshot!(result, @r#"
-        Error {
-            context: "couldn\'t read file \"/nonexistent/path/to/query.cypher\"",
-            source: Os {
-                code: 2,
-                kind: NotFound,
-                message: "No such file or directory",
-            },
-        }
-        "#);
+        assert_snapshot!(result, @r#"couldn't read file "/nonexistent/path/to/query.cypher""#);
     }
 }

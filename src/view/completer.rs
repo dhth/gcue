@@ -32,7 +32,7 @@ impl Completer for QueryFilenameCompleter {
     /// ```
     ///
     /// `"quer"` is passed to rustyline's built-in FilenameCompleter, which returns
-    /// `(0, vec!["queries/"])`. 1 is added to the start index to accomodate for the '@'.
+    /// `(0, vec!["queries/"])`. 1 is added to the start index to accommodate for the '@'.
     ///
     /// Returning `(1, vec!["queries/"])` tells rustyline to replace from position 1,
     /// resulting in `@queries/`.
@@ -47,7 +47,7 @@ impl Completer for QueryFilenameCompleter {
         }
 
         // Only complete when cursor is at the end of the line
-        if pos < line.len() {
+        if pos != line.len() {
             return Ok((pos, vec![]));
         }
 
