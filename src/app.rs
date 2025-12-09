@@ -1,19 +1,46 @@
 use crate::cli::{Args, GraphQCommand};
-use crate::cmds::{benchmark_query, execute_query};
+use crate::cmds::{ConsoleError, benchmark_query, execute_query, handle_console_cmd};
 use crate::domain::QueryResults;
 use crate::repository::{DbClient, Neo4jClient, Neo4jConfig, NeptuneClient};
 use crate::utils::{get_mandatory_env_var, get_pager};
-use crate::view::Console;
 use crate::view::{ConsoleConfig, get_results};
 use anyhow::Context;
 use aws_config::BehaviorVersion;
 use aws_sdk_neptunedata::config::ProvideCredentials;
 use chrono::Utc;
 use clap::Parser;
-use etcetera::BaseStrategy;
+use etcetera::{BaseStrategy, HomeDirError};
 use std::io::Read;
 
-pub async fn run() -> anyhow::Result<()> {
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("couldn't determine your home directory: {0}")]
+    XdgError(#[from] HomeDirError),
+    #[error(transparent)]
+    ConsoleCmdError(#[from] ConsoleError),
+    #[error(transparent)]
+    Uncategorised(#[from] anyhow::Error),
+}
+
+impl AppError {
+    pub fn follow_up(&self) -> Option<String> {
+        match self {
+            AppError::XdgError(_) => None,
+            AppError::ConsoleCmdError(_) => None,
+            AppError::Uncategorised(_) => None,
+        }
+    }
+
+    pub fn is_unexpected(&self) -> bool {
+        match self {
+            AppError::XdgError(_) => true,
+            AppError::ConsoleCmdError(_) => false,
+            AppError::Uncategorised(_) => false,
+        }
+    }
+}
+
+pub async fn run() -> Result<(), AppError> {
     let xdg = etcetera::choose_base_strategy()?;
     crate::logging::setup(&xdg)?;
     let args = Args::parse();
@@ -30,30 +57,15 @@ pub async fn run() -> anyhow::Result<()> {
             results_directory,
             results_format,
         } => {
-            let db_client = get_db_client().await?;
-            let history_file_path = xdg.data_dir().join("grf").join("history.txt");
-
-            if let Some(parent) = history_file_path.parent() {
-                tokio::fs::create_dir_all(parent).await.with_context(|| {
-                    format!("couldn't create directory for grf's history: {:?}", parent,)
-                })?;
-            }
-
             let console_config = ConsoleConfig {
                 page_results,
                 write_results,
                 results_directory,
                 results_format,
+                history_file_path: xdg.data_dir().join("grf").join("history.txt"),
             };
 
-            let pager = if page_results {
-                Some(get_pager()?)
-            } else {
-                None
-            };
-
-            let mut console = Console::new(db_client, history_file_path, console_config, pager);
-            console.run_loop().await?;
+            handle_console_cmd(console_config).await?;
         }
         GraphQCommand::Query {
             query,
@@ -67,7 +79,9 @@ pub async fn run() -> anyhow::Result<()> {
             results_format,
         } => {
             if benchmark && write_results {
-                anyhow::bail!("cannot benchmark and write results at the same time");
+                return Err(AppError::Uncategorised(anyhow::anyhow!(
+                    "cannot benchmark and write results at the same time"
+                )));
             }
 
             let pager = if page_results {
