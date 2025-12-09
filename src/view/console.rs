@@ -81,7 +81,7 @@ impl<D: QueryExecutor> Console<D> {
                     {
                         break;
                     }
-                    println!("{}", "press ctrl+c again within a second to quit".yellow());
+                    print_hint("press ctrl+c again within a second to quit");
                     self.last_ctrl_c = Some(Instant::now());
                     continue;
                 }
@@ -194,7 +194,13 @@ impl<D: QueryExecutor> Console<D> {
 
                     let start = Instant::now();
 
-                    let results = self.db_client.execute_query(&query_to_execute).await;
+                    let results = tokio::select! {
+                        res = self.db_client.execute_query(&query_to_execute) => res,
+                        _ = tokio::signal::ctrl_c() => {
+                            print_hint("\nquery cancelled");
+                            continue;
+                        }
+                    };
                     print_time(Instant::now().saturating_duration_since(start));
 
                     match results {
@@ -287,6 +293,10 @@ fn print_time(duration: Duration) {
 
 fn print_info<S: AsRef<str>>(contents: S) {
     println!("{}", contents.as_ref().blue());
+}
+
+fn print_hint<S: AsRef<str>>(contents: S) {
+    println!("{}", contents.as_ref().yellow());
 }
 
 fn print_banner(mut writer: impl Write, color: bool) {
