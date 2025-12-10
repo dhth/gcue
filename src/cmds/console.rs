@@ -4,14 +4,14 @@ use crate::view::{Console, ConsoleConfig};
 use anyhow::Context;
 
 #[derive(Debug, thiserror::Error)]
-pub enum ConsoleError {
+pub enum ConsoleCmdError {
     #[error("couldn't build db client: {0}")]
     CouldntBuildDbClient(#[from] DbClientError),
     #[error(transparent)]
     Uncategorised(#[from] anyhow::Error),
 }
 
-pub async fn handle_console_cmd(config: ConsoleConfig) -> Result<(), ConsoleError> {
+pub async fn handle_console_cmd(config: ConsoleConfig) -> Result<(), ConsoleCmdError> {
     let db_client = get_db_client().await?;
 
     if let Some(parent) = config.history_file_path.parent() {

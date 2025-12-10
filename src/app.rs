@@ -1,5 +1,5 @@
 use crate::cli::{Args, GraphQCommand};
-use crate::cmds::{ConsoleError, QueryBehaviour, handle_console_cmd, handle_query_cmd};
+use crate::cmds::{ConsoleCmdError, QueryBehaviour, handle_console_cmd, handle_query_cmd};
 use crate::view::ConsoleConfig;
 use clap::Parser;
 use etcetera::{BaseStrategy, HomeDirError};
@@ -8,10 +8,10 @@ use etcetera::{BaseStrategy, HomeDirError};
 pub enum AppError {
     #[error("couldn't determine your home directory: {0}")]
     XdgError(#[from] HomeDirError),
-    #[error(transparent)]
-    ConsoleCmdError(#[from] ConsoleError),
     #[error("0")]
     InvalidCLIUsage(&'static str),
+    #[error(transparent)]
+    ConsoleCmdError(#[from] ConsoleCmdError),
     #[error(transparent)]
     Uncategorised(#[from] anyhow::Error),
 }
