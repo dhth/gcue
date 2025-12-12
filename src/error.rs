@@ -48,11 +48,22 @@ fn follow_up_db_client_error(err: &DbClientError) -> Option<String> {
     match err {
         DbClientError::CouldntReadEnvVar(_) => None,
         DbClientError::DBUriNotSet => Some(
-            "
-grafq requires the environment variable DB_URI to be set. You can set it as follows:
-- bolt://127.0.0.1:7687 (for neo4j)
-- https://abc.xyz.us-east-1.neptune.amazonaws.com:8182 (for AWS Neptune)
-"
+            r#"
+grafq requires the environment variable DB_URI to be set.
+
+- For an AWS Neptune database, use the https scheme. Neptune uses IAM
+    authentication, so ensure your AWS credentials are configured correctly (via
+    environment variables or the AWS shared config file):
+
+    DB_URI="https://abc.xyz.us-east-1.neptune.amazonaws.com:8182"
+
+- For a Neo4j database, use the bolt scheme and provide authentication details:
+
+    DB_URI="bolt://127.0.0.1:7687"
+    NEO4J_USER="neo4j"
+    NEO4J_PASSWORD="your-password"
+    NEO4J_DB="neo4j"
+"#
             .trim()
             .into(),
         ),

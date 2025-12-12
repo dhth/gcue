@@ -14,6 +14,14 @@ It is a Rust port of [graphc].
 > grafq is alpha software. Its interface and behaviour might change in the near
 > future.
 
+🤔 Motivation
+---
+
+I wrote `grafq` for myself because I wanted a quick and easy way to poke at the
+graph databases we use at work while staying in the command line. I use it to
+try out Cypher queries, page through the output, save results to my local
+filesystem, and benchmark how they perform.
+
 💾 Installation
 ---
 
@@ -116,6 +124,51 @@ Options:
   -d, --results-dir <DIRECTORY>         Directory to write results in [default: .grafq]
   -f, --results-format <FORMAT>         Format to write results in [default: json] [possible values: csv, json]
   -h, --help                            Print help
+```
+
+🎛️ Configuration
+---
+
+grafq uses environment variables for database connection settings. The `DB_URI`
+variable determines which database type to connect to based on the scheme.
+
+### AWS Neptune
+
+For AWS Neptune databases, use the `https` scheme. Neptune uses IAM
+authentication, so ensure your AWS credentials are configured (via [environment
+variables](https://docs.aws.amazon.com/sdkref/latest/guide/environment-variables.html)
+or the [AWS shared config
+file](https://docs.aws.amazon.com/sdkref/latest/guide/file-format.html):
+
+```bash
+export DB_URI="https://abc.xyz.us-east-1.neptune.amazonaws.com:8182"
+```
+
+### Neo4j
+
+For Neo4j databases, use the `bolt` scheme and provide authentication details:
+
+```bash
+export DB_URI="bolt://localhost:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="your-password"
+export NEO4J_DB="neo4j"
+```
+
+### Pager
+
+You can pipe query results into a pager of your choice, which makes reading
+large results ergonomic. By default, grafq uses `less` for paging results. This
+can be used in both `query` and `console` modes. You can override this with the
+`GRAFQ_PAGER` environment variable:
+
+> [!TIP]
+> Make sure the pager command you use doesn't exit unless manually prompted.
+> This way the pager will stay open for as long as you need.
+
+```bash
+export GRAFQ_PAGER='bat -p --paging always'
+export GRAFQ_PAGER="nvim"
 ```
 
 [graphc]: https://github.com/dhth/graphc
