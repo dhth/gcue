@@ -47,6 +47,28 @@ Options:
   -h, --help   Print help
 ```
 
+### Basic examples
+
+```text
+# open console mode with "page results" feature turned ON
+grafq console -p
+
+# open console mode with "write results" feature turned ON
+grafq console -w
+
+# execute a one off-query
+grafq query 'MATCH (n: Node) RETURN n.id, n.name LIMIT 5'
+
+# read query from stdin
+cat query.cypher | grafq query -
+
+# benchmark a query 10 times with 3 warmup runs
+cat query.cypher | grafq query - -b -n 10 -W 3
+
+# write results to a local file in csv format
+cat query.cypher | grafq query - -w -f csv
+```
+
 Console Mode
 ---
 
