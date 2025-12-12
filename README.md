@@ -8,8 +8,6 @@
 `grafq` (short for "graph query") lets you query Neo4j/AWS Neptune databases via
 an interactive console.
 
-*It is a Rust port of [graphc].*
-
 ![console](https://tools.dhruvs.space/images/grafq/v0-1-0/console.png)
 
 > [!NOTE]
@@ -183,5 +181,3 @@ can be used in both `query` and `console` modes. You can override this with the
 export GRAFQ_PAGER='bat -p --paging always'
 export GRAFQ_PAGER="nvim"
 ```
-
-[graphc]: https://github.com/dhth/graphc

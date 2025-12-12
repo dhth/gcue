@@ -132,8 +132,8 @@ impl<D: QueryExecutor> Console<D> {
                 cmd if cmd.starts_with("format") => match cmd.split_once(" ") {
                     Some((_, arg)) => match ResultsFormat::from_str(arg) {
                         Ok(f) => {
+                            print_info(format!("results format set to: {}", &f));
                             self.config.results_format = f;
-                            print_info(format!("results format set to: {}", arg));
                         }
                         Err(e) => {
                             print_error(e);
@@ -160,7 +160,7 @@ impl<D: QueryExecutor> Console<D> {
                             print_error(format!("Error: invalid path provided: {}", e));
                         }
                     },
-                    None => print_error("Usage: dir <PATH>"),
+                    None => print_error("Usage: dir <PATH> | dir reset"),
                 },
                 cmd if cmd.starts_with("write") => match cmd.split_once(" ") {
                     Some((_, "on")) => {
