@@ -32,6 +32,16 @@ impl QueryExecutor for DbClient {
     }
 }
 
+impl DbClient {
+    pub async fn verify_connectivity(&self) -> anyhow::Result<()> {
+        self.execute_query("RETURN 1")
+            .await
+            .with_context(|| format!("couldn't verify connection to {}", self.db_uri()))?;
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum DbClientError {
     #[error(transparent)]
